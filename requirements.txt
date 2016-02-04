@@ -1,0 +1,6 @@
+CouchDB==1.0
+Django==1.9.2
+picamera==1.10
+pyserial==3.0.1
+RPi.GPIO==0.6.1
+wheel==0.26.0
