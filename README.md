@@ -29,6 +29,8 @@ Supports a Raspberry Pi, controlling a C12666MA spectrometer hosted on an Arduin
 - Samples and some other operations may be processed asynchronously 
 - Picture will be marked with identifying sample info
 - Application will be served locally as an API, which will be consumed by an outward-facing html application
+- No security on the RPi (you already have physical control of the device, anything short of full disk encryption would allow you to own the data and FDE is too much overhead in this case), 
+  - But there will be another app which can serve up group and sample data from an AWS-hosted Docker-contained app, that app will have security
 
 ## SOFTWARE
 - Django with Python 3 
