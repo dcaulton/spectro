@@ -39,7 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'rest_framework',
-    'spectro.api.groups.apps.GroupsConfig',
+    'spectro.api.groups',
 ]
 
 MIDDLEWARE_CLASSES = [
