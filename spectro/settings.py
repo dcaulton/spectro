@@ -38,8 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'rest_framework',
-    'spectro.api.groups',
+    'api',
 ]
 
 MIDDLEWARE_CLASSES = [
@@ -53,7 +52,7 @@ MIDDLEWARE_CLASSES = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'spectro.conf.urls'
+ROOT_URLCONF = 'spectro.urls'
 
 TEMPLATES = [
     {
@@ -71,7 +70,7 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'spectro.conf.wsgi.application'
+WSGI_APPLICATION = 'spectro.wsgi.application'
 
 
 # Database
