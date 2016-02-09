@@ -1,24 +1,43 @@
-"""spectro URL Configuration
-
-The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/1.9/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  url(r'^$', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  url(r'^$', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.conf.urls import url, include
-    2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
-"""
 from django.conf.urls import include, url
-from django.contrib import admin
+from rest_framework.routers import DefaultRouter
 
 from api import views
+from api.models import (Settings,
+                        Sample,
+                        Group,
+                        SampleData,
+                        SampleFeature,
+                        SampleMatch,
+                        Photo,
+                        VoiceMemo,
+                        SampleDelta,
+                        GroupMatchCandidate,
+                        GroupMember,
+                        GroupLimit,
+                        Location,
+                        Subject,
+                       )
 
+# Create a router and register our viewsets with it.
+router = DefaultRouter()
+router.register(r'settings', views.SettingsViewSet)
+router.register(r'sample', views.SampleViewSet)
+router.register(r'group', views.GroupViewSet)
+router.register(r'sample_data', views.SampleDataViewSet)
+router.register(r'sample_feature', views.SampleFeatureViewSet)
+router.register(r'sample_match', views.SampleMatchViewSet)
+router.register(r'photo', views.PhotoViewSet)
+router.register(r'voice_memo', views.VoiceMemoViewSet)
+router.register(r'sample_delta', views.SampleDeltaViewSet)
+router.register(r'group_match_candidate', views.GroupMatchCandidateViewSet)
+router.register(r'group_member', views.GroupMemberViewSet)
+router.register(r'group_limit', views.GroupLimitViewSet)
+router.register(r'location', views.LocationViewSet)
+router.register(r'subject', views.SubjectViewSet)
+
+# The API URLs are now determined automatically by the router.
+# Additionally, we include the login URLs for the browsable API.
 urlpatterns = [
-    url(r'settings', views.SettingsView.as_view(), name='settings'),
-    url(r'groups', views.GroupListView.as_view(), name='group_list'),
+    url(r'^api/v1/', include(router.urls)),
+    url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework'))
 ]

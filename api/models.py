@@ -62,9 +62,9 @@ class Sample(models.Model):
     reading_type = models.CharField(max_length=32, choices=READING_TYPE_CHOICES)
     record_type = models.CharField(max_length=32, choices=RECORD_TYPE_CHOICES)
     description = models.CharField(max_length=4096)
-    subject = models.ForeignKey('Subject')
+    subject = models.ForeignKey('Subject', null=True)
     average_magnitude = models.IntegerField(default=0)
-    representative_sample = models.ForeignKey('Sample')
+    representative_sample = models.ForeignKey('Sample', null=True)
 
     class Meta:
         db_table = 'sample'
@@ -74,8 +74,8 @@ class Group(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=1024)
     created = AutoCreatedField()
-    parent_group = models.ForeignKey('Group')
-    subject = models.ForeignKey('Subject')
+    parent_group = models.ForeignKey('Group', null=True)
+    subject = models.ForeignKey('Subject', null=True)
     reading_type = models.CharField(max_length=32,
                                     choices=Sample.READING_TYPE_CHOICES,
                                     default=Sample.SPECTROMETER)
@@ -92,8 +92,8 @@ class Group(models.Model):
 
 class SampleData(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    sample = models.ForeignKey('Sample')
-    delta = models.ForeignKey('SampleDelta')
+    sample = models.ForeignKey('Sample', null=True)
+    delta = models.ForeignKey('SampleDelta', null=True)
     frequency = models.IntegerField()
     magnitude = models.IntegerField()
 
@@ -131,7 +131,7 @@ class SampleMatch(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     source_sample = models.ForeignKey('Sample', related_name = 'samplematch_source_sample')
     reference_sample = models.ForeignKey('Sample', related_name = 'samplematch_reference_sample')
-    delta = models.ForeignKey('SampleDelta')
+    delta = models.ForeignKey('SampleDelta', null=True)
     rating = models.FloatField(default=0.0)
 
     class Meta:
@@ -140,7 +140,9 @@ class SampleMatch(models.Model):
 
 class Photo(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    sample = models.ForeignKey('Sample')
+    group = models.ForeignKey('Group', null=True)
+    sample = models.ForeignKey('Sample', null=True)
+    subject = models.ForeignKey('Subject', null=True)
     file_path = models.CharField(max_length=1024)
 
     class Meta:
@@ -149,7 +151,7 @@ class Photo(models.Model):
 
 class VoiceMemo(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    sample = models.ForeignKey('Sample')
+    sample = models.ForeignKey('Sample', null=True)
     file_path = models.CharField(max_length=1024)
 
     class Meta:
@@ -158,9 +160,9 @@ class VoiceMemo(models.Model):
 
 class SampleDelta(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    group = models.ForeignKey('Group')
-    source_sample = models.ForeignKey('Sample', related_name = 'sampledelta_source_sample')
-    reference_sample = models.ForeignKey('Sample', related_name = 'sampledelta_reference_sample')
+    group = models.ForeignKey('Group', null=True)
+    source_sample = models.ForeignKey('Sample', related_name = 'sampledelta_source_sample', null=True)
+    reference_sample = models.ForeignKey('Sample', related_name = 'sampledelta_reference_sample', null=True)
 
     class Meta:
         db_table = 'sample_delta'
@@ -190,6 +192,7 @@ class GroupMember(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     group = models.ForeignKey('Group')
     username = models.CharField(max_length=64)   #make this a foreign key to the Django admin User table
+    user = models.ForeignKey('auth.User', related_name='groupmember')
     role = models.CharField(max_length=32, choices=ROLE_CHOICES)
 
     class Meta:
@@ -208,8 +211,8 @@ class GroupLimit(models.Model):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     group = models.ForeignKey('Group')
-    upper_limit = models.ForeignKey('Sample', related_name = 'upper_limit')
-    lower_limit = models.ForeignKey('Sample', related_name = 'lower_limit')
+    upper_limit = models.ForeignKey('Sample', related_name = 'upper_limit', null=True)
+    lower_limit = models.ForeignKey('Sample', related_name = 'lower_limit', null=True)
     limits_exceeded_action = models.CharField(max_length=32, choices=LIMITS_EXCEEDED_ACTION_CHOICES)
 
     class Meta:
@@ -218,8 +221,8 @@ class GroupLimit(models.Model):
 
 class Location(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    group = models.ForeignKey('Group')
-    sample = models.ForeignKey('Sample')
+    group = models.ForeignKey('Group', null=True)
+    sample = models.ForeignKey('Sample', null=True)
     latitude = models.FloatField()
     longitude = models.FloatField()
     elevation = models.FloatField()
