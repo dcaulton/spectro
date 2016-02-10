@@ -63,6 +63,7 @@ class Sample(models.Model):
     record_type = models.CharField(max_length=32, choices=RECORD_TYPE_CHOICES)
     description = models.CharField(max_length=4096)
     subject = models.ForeignKey('Subject', null=True)
+    data = models.CharField(max_length=4096)
     average_magnitude = models.IntegerField(default=0)
     representative_sample = models.ForeignKey('Sample', null=True)
 

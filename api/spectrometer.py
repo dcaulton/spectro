@@ -3,48 +3,64 @@ import sys
 from time import sleep
 
 
-ser = serial.Serial('/dev/ttyACM0', 115200)
+class Spectrometer(object):
 
-def wait_for_ready():
-    print('-----------before---------')
-    data = str(ser.readline())
-    while 'ready' not in data:
-        data = str(ser.readline())
-        sleep(.1)
-    print('-- arduino is ready now--')
+    def __init__(self, console_output=False):
+        self.ser = serial.Serial('/dev/ttyACM0', 115200)
+        self.console_output = console_output
 
-def do_the_call():
+    def take_spectrometer_reading(self):
+        self.do_the_call(1)
+        return self.get_results()
+
+    def take_fluorescence_reading(self):
+        self.do_the_call(2)
+        return self.get_results()
+
+    def take_color_reading(self):
+        self.do_the_call(3)
+        return self.get_results()
+
+    def do_the_call(self, command_number):
+        received_bytes_string = "b'"+str(command_number)+"\\r\\n'"
+        command_in_bytes = bytes(str(command_number), 'ascii')
+        if self.console_output: print('-----------during call-----------')
+        command_didnt_take = True
+        while command_didnt_take:
+            if self.console_output: print('-----calling-----')
+            self.ser.write(command_in_bytes)
+            data = str(self.ser.readline())
+            if self.console_output: print(data)
+            if (data == received_bytes_string):
+                if self.console_output: print('command was received')
+                command_didnt_take = False
+            else:
+                if self.console_output: print('command didnt take: '+data)
+            sleep(1)
+
+    def get_results(self):
+        data = []
+        if self.console_output: print('-----------waiting for results -----------')
+        data.append(str(self.ser.readline()))
+        if self.console_output: print(data[-1])
+        while 'done' not in data[-1]:
+            data.append(str(self.ser.readline()))
+            if self.console_output: print(data[-1])
+            sleep(.3)
+        if self.console_output: print('-- results have been collected --')
+        the_string_of_data = data[-2][2:-1]  # truncate 'b' at the front of the string
+        data_as_array = the_string_of_data.split(',')[:-1] # truncate junk data with newline after the last comma
+        if len(data_as_array) == 256:
+            return data_as_array
+        else:
+            return False
+
+
+if __name__ == '__main__':
+    spectrometer = Spectrometer(console_output=True)
     if len(sys.argv) > 1:
         command_number = int(sys.argv[1])
     else:
         command_number = 3
-
-    received_bytes_string = "b'"+str(command_number)+"\\r\\n'"
-    command_in_bytes = bytes(str(command_number), 'ascii')
-    print('-----------during call-----------')
-    command_didnt_take = True
-    while command_didnt_take:
-        print('-----calling-----')
-        ser.write(command_in_bytes)
-        data = str(ser.readline())
-        print(data)
-        if (data == received_bytes_string):
-            print('command was received')
-            command_didnt_take = False
-        else:
-            print('command didnt take: '+data)
-        sleep(1)
-
-def get_results():
-    print('-----------waiting for results -----------')
-    data = str(ser.readline())
-    print(data)
-    while 'done' not in data:
-        data = str(ser.readline())
-        print(data)
-        sleep(.3)
-    print('-- results have been collected --')
-
-do_the_call()
-get_results()
-
+    spectrometer.do_the_call(command_number)
+    spectrometer.get_results()
