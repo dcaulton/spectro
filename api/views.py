@@ -1,10 +1,8 @@
-#from django.conf.urls import url, include
-#from django.contrib.auth.models import User
-#from rest_framework import routers, serializers, viewsets
-#from rest_framework.response import Response
-#from rest_framework.views import APIView
+import uuid
 
 from rest_framework import viewsets
+from rest_framework.decorators import detail_route, api_view
+from rest_framework.response import Response
 
 from api.models import (Settings,
                         Sample,
@@ -47,7 +45,6 @@ class SettingsViewSet (viewsets.ModelViewSet):
 class SampleViewSet (viewsets.ModelViewSet):
     queryset = Sample.objects.all()
     serializer_class = SampleSerializer
-
 
 class GroupViewSet (viewsets.ModelViewSet):
     queryset = Group.objects.all()
@@ -107,3 +104,27 @@ class LocationViewSet (viewsets.ModelViewSet):
 class SubjectViewSet (viewsets.ModelViewSet):
     queryset = Subject.objects.all()
     serializer_class = SubjectSerializer
+
+
+@api_view()
+def capture_sample(request):
+    #do these steps asynchronously, return the id of the sample synchronously
+    #call spectrometer, save a Sample record
+    #call camera, save a Photo record
+    #call voice record, save a VoiceMemo record
+    #call sample post processing logic
+    sample_id = uuid.uuid4()
+    resp_data = {'sample_id': str(sample_id)}
+    return Response(resp_data)
+
+@api_view()
+def calibrate(request, reference_sample_id):
+    sample_id = uuid.uuid4()
+    resp_data = {'calibration_delta_id': str(sample_id)}
+    return Response(resp_data)
+
+@api_view()
+def train(request, sample_name):
+    sample_id = uuid.uuid4()
+    resp_data = {'sample_id': str(sample_id)}
+    return Response(resp_data)

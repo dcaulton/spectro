@@ -21,23 +21,26 @@ from api.models import (Settings,
 # Create a router and register our viewsets with it.
 router = DefaultRouter()
 router.register(r'settings', views.SettingsViewSet)
-router.register(r'sample', views.SampleViewSet)
-router.register(r'group', views.GroupViewSet)
-router.register(r'sample_data', views.SampleDataViewSet)
-router.register(r'sample_feature', views.SampleFeatureViewSet)
-router.register(r'sample_match', views.SampleMatchViewSet)
-router.register(r'photo', views.PhotoViewSet)
-router.register(r'voice_memo', views.VoiceMemoViewSet)
-router.register(r'sample_delta', views.SampleDeltaViewSet)
-router.register(r'group_match_candidate', views.GroupMatchCandidateViewSet)
-router.register(r'group_member', views.GroupMemberViewSet)
-router.register(r'group_limit', views.GroupLimitViewSet)
-router.register(r'location', views.LocationViewSet)
-router.register(r'subject', views.SubjectViewSet)
+router.register(r'samples', views.SampleViewSet)
+router.register(r'groups', views.GroupViewSet)
+router.register(r'sample_datas', views.SampleDataViewSet)
+router.register(r'sample_features', views.SampleFeatureViewSet)
+router.register(r'sample_matchs', views.SampleMatchViewSet)
+router.register(r'photos', views.PhotoViewSet)
+router.register(r'voice_memos', views.VoiceMemoViewSet)
+router.register(r'sample_deltas', views.SampleDeltaViewSet)
+router.register(r'group_match_candidates', views.GroupMatchCandidateViewSet)
+router.register(r'group_members', views.GroupMemberViewSet)
+router.register(r'group_limits', views.GroupLimitViewSet)
+router.register(r'locations', views.LocationViewSet)
+router.register(r'subjects', views.SubjectViewSet)
 
 # The API URLs are now determined automatically by the router.
 # Additionally, we include the login URLs for the browsable API.
 urlpatterns = [
     url(r'^api/v1/', include(router.urls)),
+    url(r'^api/v1/capture_sample/', 'api.views.capture_sample'),
+    url(r'^api/v1/calibrate/(?P<reference_sample_id>[\w-]+)', 'api.views.calibrate'),
+    url(r'^api/v1/train/(?P<sample_name>[\w-]+)', 'api.views.train'),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework'))
 ]
