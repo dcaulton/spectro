@@ -6,7 +6,7 @@ from time import sleep
 class Spectrometer(object):
 
     def __init__(self, console_output=False):
-        self.ser = serial.Serial('/dev/ttyACM0', 115200)
+        self.ser = serial.Serial(port='/dev/ttyACM0', baudrate=115200, timeout=1)
         self.console_output = console_output
 
     def take_spectrometer_reading(self):
@@ -22,6 +22,7 @@ class Spectrometer(object):
         return self.get_results()
 
     def do_the_call(self, command_number):
+        self.ser.reset_input_buffer()
         received_bytes_string = "b'"+str(command_number)+"\\r\\n'"
         command_in_bytes = bytes(str(command_number), 'ascii')
         if self.console_output: print('-----------during call-----------')
