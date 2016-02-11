@@ -1,3 +1,4 @@
+import functools
 import uuid
 
 from rest_framework import viewsets
@@ -107,18 +108,6 @@ class SubjectViewSet (viewsets.ModelViewSet):
     serializer_class = SubjectSerializer
 
 
-def get_current_group():
-    #TODO create settings and group objects if none exist
-    if not Settings.objects.count():  # create settings and group if no settings object exists
-        group = Group()
-        group.save()
-        settings = Settings(group=group)
-        settings.save()
-        return group
-    settings = Settings.objects.all()[0]
-    group = Group.objects.get(id=settings.current_group_id)
-    return group
-
 @api_view()
 def capture_sample(request):
     '''
@@ -147,10 +136,24 @@ def capture_sample(request):
     return Response(composite_data)
 
 @api_view()
-def calibrate(request, reference_sample_id):
-    sample_id = uuid.uuid4()
-    resp_data = {'calibration_delta_id': str(sample_id)}
-    return Response(resp_data)
+def calibrate(request):
+    # TODO add logic and tests for null reference_sample_id
+    group = get_current_group()
+
+    if 'reference_sample_id' in request.query_params and request.query_params['reference_sample_id']:
+        #TODO add a test for a bad sample_id
+        reference_sample = Sample.objects.get(id=request.query_params['reference_sample_id'])
+        source_sample = take_spectrometer_sample(group=group,
+                                                 reading_type=group.reading_type)
+
+        delta = create_sample_delta(group, source_sample, reference_sample)
+
+        sample_delta_serializer = SampleDeltaSerializer(delta)
+
+        return Response(sample_delta_serializer.data)
+    else:  #TODO add a test for this condition
+        err_message = 'An id must be specified for a reference sample'
+        return Response(data=err_message, status=409)
 
 @api_view()
 def train(request):
@@ -159,17 +162,14 @@ def train(request):
     Save the record with no group, and a description as specified with the sample_name get parameter.
     This is intended to be a reference sample across all groups.
     '''
-    sample_id = uuid.uuid4()
-
     valid_sample_types = [Sample.SPECTROMETER, Sample.COLOR, Sample.FLUORESCENCE]
-    if request.query_params['reading_type'] in valid_sample_types:
+    if 'reading_type' in request.query_params and request.query_params['reading_type'] in valid_sample_types:
         if request.query_params['sample_name']:
-            sample = take_spectrometer_sample(sample_id=sample_id,
-                                              reading_type=request.query_params['reading_type'],
+            sample = take_spectrometer_sample(reading_type=request.query_params['reading_type'],
                                               description=request.query_params['sample_name'])
             sample_serializer = SampleSerializer(sample)
             return Response(sample_serializer.data)
-        else:
+        else: #TODO add a test for this condition
             err_message = 'A non-empty sample name must be specified for a reference sample'
             return Response(data=err_message, status=409)
     else:
@@ -177,13 +177,40 @@ def train(request):
         err_message = 'Invalid sample type, must be one of these: '+str(valid_sample_types)
         return Response(data=err_message, status=409)
 
+def get_current_group():
+    if not Settings.objects.count():  # create settings and group if no settings object exists
+        group = Group()
+        group.save()
+        settings = Settings(group=group)
+        settings.save()
+        return group
+    settings = Settings.objects.all()[0]
+    group = Group.objects.get(id=settings.current_group_id)
+    return group
+
+def create_sample_delta(group, source_sample, reference_sample):
+    diff_data = []
+    reference_sample_array = reference_sample.data.split(',')
+    source_sample_array = source_sample.data.split(',')
+
+    for (index, source_val) in enumerate(source_sample_array):
+        diff_data.append(int(reference_sample_array[index]) - int(source_val))
+
+    diff_data_csv_string = int_list_to_csv_string(diff_data)
+    sample_delta = SampleDelta(group=group,
+                               source_sample=source_sample,
+                               reference_sample=reference_sample,
+                               data=diff_data_csv_string)
+    sample_delta.save()
+    return sample_delta
+
 def get_average_sample_value(sample_data):
     average_value = 0
     if sample_data:
         average_value = sum(sample_data) / len(sample_data)
     return average_value
  
-def take_spectrometer_sample(sample_id,
+def take_spectrometer_sample(sample_id=uuid.uuid4(),
                              group=None,
                              reading_type=Sample.SPECTROMETER,
                              subject=None,
@@ -196,6 +223,7 @@ def take_spectrometer_sample(sample_id,
     if reading_type == Sample.FLUORESCENCE:
         sample_data = spectrometer.take_fluorescence_reading()
 
+    sample_data_csv_string = int_list_to_csv_string(sample_data)
     average_value = get_average_sample_value(sample_data)
 
     the_subject = subject
@@ -208,10 +236,13 @@ def take_spectrometer_sample(sample_id,
                     record_type=Sample.PHYSICAL,
                     description=description,
                     subject=the_subject,
-                    data=sample_data,
+                    data=sample_data_csv_string,
                     average_magnitude=average_value)
     sample.save()
     return sample
+
+def int_list_to_csv_string(array_of_ints):
+    return functools.reduce(lambda x, y: str(x)+','+str(y), array_of_ints)
 
 def take_photo(group, sample_id):
     photo_id = uuid.uuid4()

@@ -40,7 +40,7 @@ router.register(r'subjects', views.SubjectViewSet)
 urlpatterns = [
     url(r'^api/v1/', include(router.urls)),
     url(r'^api/v1/capture_sample/', 'api.views.capture_sample'),
-    url(r'^api/v1/calibrate/(?P<reference_sample_id>[\w-]+)', 'api.views.calibrate'),
+    url(r'^api/v1/calibrate/', 'api.views.calibrate'),
     url(r'^api/v1/train/', 'api.views.train'),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework'))
 ]

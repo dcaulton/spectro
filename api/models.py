@@ -167,6 +167,7 @@ class SampleDelta(models.Model):
     group = models.ForeignKey('Group', null=True)
     source_sample = models.ForeignKey('Sample', related_name = 'sampledelta_source_sample', null=True)
     reference_sample = models.ForeignKey('Sample', related_name = 'sampledelta_reference_sample', null=True)
+    data = models.CharField(max_length=4096)
 
     class Meta:
         db_table = 'sample_delta'
