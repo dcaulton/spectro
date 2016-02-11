@@ -1,6 +1,7 @@
 import functools
 import uuid
 
+from django.shortcuts import get_object_or_404
 from rest_framework import viewsets
 from rest_framework.decorators import detail_route, api_view
 from rest_framework.response import Response
@@ -137,12 +138,16 @@ def capture_sample(request):
 
 @api_view()
 def calibrate(request):
+    '''
+    Take a sample according to the current group config.
+    Compare its data to the reference_sample_id passed in as a get parm
+    On success return a SampleDelta object with the differences between the two samples
+    '''
     # TODO add logic and tests for null reference_sample_id
     group = get_current_group()
 
     if 'reference_sample_id' in request.query_params and request.query_params['reference_sample_id']:
-        #TODO add a test for a bad sample_id
-        reference_sample = Sample.objects.get(id=request.query_params['reference_sample_id'])
+        reference_sample = get_object_or_404(Sample, id=request.query_params['reference_sample_id'])
         source_sample = take_spectrometer_sample(group=group,
                                                  reading_type=group.reading_type)
 
@@ -161,6 +166,7 @@ def train(request):
     Take a physical sample from the spectrometer of the reading type specified via the 'reading_type' get parameter.
     Save the record with no group, and a description as specified with the sample_name get parameter.
     This is intended to be a reference sample across all groups.
+    On success return json representing the new Sample
     '''
     valid_sample_types = [Sample.SPECTROMETER, Sample.COLOR, Sample.FLUORESCENCE]
     if 'reading_type' in request.query_params and request.query_params['reading_type'] in valid_sample_types:
@@ -178,6 +184,10 @@ def train(request):
         return Response(data=err_message, status=409)
 
 def get_current_group():
+    '''
+    Get the group pointed to by the settings object.  Settings is a singleton.
+    If settings doesn't exist, create settings and group.
+    '''
     if not Settings.objects.count():  # create settings and group if no settings object exists
         group = Group()
         group.save()
@@ -185,10 +195,14 @@ def get_current_group():
         settings.save()
         return group
     settings = Settings.objects.all()[0]
-    group = Group.objects.get(id=settings.current_group_id)
+    group = get_object_or_404(Group, id=settings.current_group_id)
     return group
 
 def create_sample_delta(group, source_sample, reference_sample):
+    '''
+    Compare the data between two samples
+    Return a SampleDelta object with what needs to be added to the source sample to get the reference sample
+    '''
     diff_data = []
     reference_sample_array = reference_sample.data.split(',')
     source_sample_array = source_sample.data.split(',')
@@ -205,6 +219,9 @@ def create_sample_delta(group, source_sample, reference_sample):
     return sample_delta
 
 def get_average_sample_value(sample_data):
+    '''
+    Find the int average of all the values in a sample data (an array of ints)
+    '''
     average_value = 0
     if sample_data:
         average_value = sum(sample_data) / len(sample_data)
@@ -215,6 +232,10 @@ def take_spectrometer_sample(sample_id=uuid.uuid4(),
                              reading_type=Sample.SPECTROMETER,
                              subject=None,
                              description=''):
+    '''
+    Call the Spectrometer class to gather a sample from the hardware
+    Returns a Sample object
+    '''
     spectrometer = Spectrometer()
     if reading_type == Sample.SPECTROMETER:
         sample_data = spectrometer.take_spectrometer_reading()
@@ -242,9 +263,16 @@ def take_spectrometer_sample(sample_id=uuid.uuid4(),
     return sample
 
 def int_list_to_csv_string(array_of_ints):
+    '''
+    Convert an array of ints into a single string with all the ints separated by commas
+    '''
     return functools.reduce(lambda x, y: str(x)+','+str(y), array_of_ints)
 
 def take_photo(group, sample_id):
+    '''
+    Calls the Picam class to have the hardware take a picture.
+    Returns a Picture object
+    '''
     photo_id = uuid.uuid4()
     camera = Picam()
     file_path = camera.take_still(str(photo_id)+'.jpg')
