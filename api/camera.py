@@ -1,3 +1,4 @@
+import os
 import sys
 
 import picamera
@@ -9,17 +10,19 @@ class Picam(object):
     '''
 
     def __init__(self):
-        pass
+        self.root_directory = '/home/pi/Pictures'
 
-    def take_still(self, pic_path, image_width=1200, image_height=900):
+    def take_still(self, pic_name, image_width=1200, image_height=900):
         with picamera.PiCamera() as camera:
             camera.resolution = (image_width, image_height)
+            pic_path = os.path.join(self.root_directory, pic_name)
             camera.capture(pic_path)
+            return pic_path
 
 if __name__ == '__main__':
     camera = Picam()
     if len(sys.argv) > 1:
-        pic_path = os.path.join('/home/pi/Pictures/', sys.argv)
+        pic_name = sys.argv
     else:
-        pic_path = '/home/pi/Pictures/out.jpg'
-    camera.take_still(pic_path)
+        pic_name = 'out.jpg'
+    camera.take_still(pic_name)

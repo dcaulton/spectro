@@ -51,10 +51,11 @@ class Spectrometer(object):
         if self.console_output: print('-- results have been collected --')
         the_string_of_data = data[-2][2:-1]  # truncate 'b' at the front of the string
         data_as_array = the_string_of_data.split(',')[:-1] # truncate junk data with newline after the last comma
-        if len(data_as_array) == 256:
-            return data_as_array
+        data_as_int_array = [int(x) for x in data_as_array if x.isdigit()]
+        if len(data_as_int_array) == 256:
+            return data_as_int_array
         else:
-            return False
+            return []
 
 
 if __name__ == '__main__':

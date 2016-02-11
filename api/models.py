@@ -73,7 +73,7 @@ class Sample(models.Model):
 
 class Group(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    name = models.CharField(max_length=1024)
+    name = models.CharField(max_length=1024, null=True)
     created = AutoCreatedField()
     parent_group = models.ForeignKey('Group', null=True)
     subject = models.ForeignKey('Subject', null=True)
