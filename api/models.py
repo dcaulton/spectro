@@ -58,7 +58,8 @@ class Sample(models.Model):
     )
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    group = models.ForeignKey('Group')
+    created = AutoCreatedField()
+    group = models.ForeignKey('Group', null=True)
     reading_type = models.CharField(max_length=32, choices=READING_TYPE_CHOICES)
     record_type = models.CharField(max_length=32, choices=RECORD_TYPE_CHOICES)
     description = models.CharField(max_length=4096)
@@ -73,8 +74,8 @@ class Sample(models.Model):
 
 class Group(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    name = models.CharField(max_length=1024, null=True)
     created = AutoCreatedField()
+    name = models.CharField(max_length=1024, null=True)
     parent_group = models.ForeignKey('Group', null=True)
     subject = models.ForeignKey('Subject', null=True)
     reading_type = models.CharField(max_length=32,
@@ -141,6 +142,7 @@ class SampleMatch(models.Model):
 
 class Photo(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    created = AutoCreatedField()
     group = models.ForeignKey('Group', null=True)
     sample = models.ForeignKey('Sample', null=True)
     subject = models.ForeignKey('Subject', null=True)
@@ -152,6 +154,7 @@ class Photo(models.Model):
 
 class VoiceMemo(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    created = AutoCreatedField()
     sample = models.ForeignKey('Sample', null=True)
     file_path = models.CharField(max_length=1024)
 
@@ -191,6 +194,7 @@ class GroupMember(models.Model):
     )
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    created = AutoCreatedField()
     group = models.ForeignKey('Group')
     username = models.CharField(max_length=64)   #make this a foreign key to the Django admin User table
     user = models.ForeignKey('auth.User', related_name='groupmember')
@@ -222,6 +226,7 @@ class GroupLimit(models.Model):
 
 class Location(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    created = AutoCreatedField()
     group = models.ForeignKey('Group', null=True)
     sample = models.ForeignKey('Sample', null=True)
     latitude = models.FloatField()

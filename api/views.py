@@ -121,60 +121,30 @@ def get_current_group():
 
 @api_view()
 def capture_sample(request):
-    #do these steps asynchronously, return the id of the sample synchronously
-    #call spectrometer, save a Sample record
-    #call camera, save a Photo record
-    #call voice record, save a VoiceMemo record
-    #call sample post processing logic
+    '''
+    Capture a physical sample from the spectrometer according to the parameters specified in the current active group
+      from (the settings record)
+    Capture a photo as well if the group is configured to capture photos
+    Save both records to the db
+    '''
+    #TODO do these steps asynchronously, return the id of the sample synchronously
+    #TODO call voice record, save a VoiceMemo record
+    #TODO call sample post processing logic
     group = get_current_group()
+    sample_id = uuid.uuid4()
 
-    sample = take_spectrometer_sample(group)
+    sample = take_spectrometer_sample(sample_id=sample_id,
+                                      group=group,
+                                      reading_type=group.reading_type)
 
     if group.use_photo:
-        photo = take_photo(group, sample)
+        photo = take_photo(group, sample_id)
 
     sample_serializer = SampleSerializer(sample)
     photo_serializer = PhotoSerializer(photo)
     composite_data = {'sample': sample_serializer.data,
                       'photo': photo_serializer.data}
     return Response(composite_data)
-
-def take_spectrometer_sample(group):
-    sample_id = uuid.uuid4()
-
-    spectrometer = Spectrometer()
-    if group.reading_type == Sample.SPECTROMETER:
-        sample_data = spectrometer.take_spectrometer_reading()
-    if group.reading_type == Sample.COLOR:
-        sample_data = spectrometer.take_color_reading()
-    if group.reading_type == Sample.FLUORESCENCE:
-        sample_data = spectrometer.take_fluorescence_reading()
-
-    average_value = 0
-    if sample_data:
-        average_value = sum(sample_data) / len(sample_data)
- 
-    sample = Sample(id=sample_id,
-                    group=group,
-                    reading_type=group.reading_type,
-                    record_type=Sample.PHYSICAL,
-                    subject=group.subject,
-                    data=sample_data,
-                    average_magnitude=average_value)
-    sample.save()
-    return sample
-
-def take_photo(group, sample):
-    photo_id = uuid.uuid4()
-    camera = Picam()
-    file_path = camera.take_still(str(photo_id)+'.jpg')
-    photo = Photo(id=photo_id,
-                  group=group,
-                  sample=sample,
-                  subject=group.subject,
-                  file_path=file_path)
-    photo.save()
-    return photo
 
 @api_view()
 def calibrate(request, reference_sample_id):
@@ -183,7 +153,74 @@ def calibrate(request, reference_sample_id):
     return Response(resp_data)
 
 @api_view()
-def train(request, sample_name):
+def train(request):
+    '''
+    Take a physical sample from the spectrometer of the reading type specified via the 'reading_type' get parameter.
+    Save the record with no group, and a description as specified with the sample_name get parameter.
+    This is intended to be a reference sample across all groups.
+    '''
     sample_id = uuid.uuid4()
-    resp_data = {'sample_id': str(sample_id)}
-    return Response(resp_data)
+
+    valid_sample_types = [Sample.SPECTROMETER, Sample.COLOR, Sample.FLUORESCENCE]
+    if request.query_params['reading_type'] in valid_sample_types:
+        if request.query_params['sample_name']:
+            sample = take_spectrometer_sample(sample_id=sample_id,
+                                              reading_type=request.query_params['reading_type'],
+                                              description=request.query_params['sample_name'])
+            sample_serializer = SampleSerializer(sample)
+            return Response(sample_serializer.data)
+        else:
+            err_message = 'A non-empty sample name must be specified for a reference sample'
+            return Response(data=err_message, status=409)
+    else:
+        #TODO add a test for this condition
+        err_message = 'Invalid sample type, must be one of these: '+str(valid_sample_types)
+        return Response(data=err_message, status=409)
+
+def get_average_sample_value(sample_data):
+    average_value = 0
+    if sample_data:
+        average_value = sum(sample_data) / len(sample_data)
+    return average_value
+ 
+def take_spectrometer_sample(sample_id,
+                             group=None,
+                             reading_type=Sample.SPECTROMETER,
+                             subject=None,
+                             description=''):
+    spectrometer = Spectrometer()
+    if reading_type == Sample.SPECTROMETER:
+        sample_data = spectrometer.take_spectrometer_reading()
+    if reading_type == Sample.COLOR:
+        sample_data = spectrometer.take_color_reading()
+    if reading_type == Sample.FLUORESCENCE:
+        sample_data = spectrometer.take_fluorescence_reading()
+
+    average_value = get_average_sample_value(sample_data)
+
+    the_subject = subject
+    if group and group.subject:  #TODO add logic that tests this condition
+        the_subject = group.subject
+
+    sample = Sample(id=sample_id,
+                    group=group,
+                    reading_type=reading_type,
+                    record_type=Sample.PHYSICAL,
+                    description=description,
+                    subject=the_subject,
+                    data=sample_data,
+                    average_magnitude=average_value)
+    sample.save()
+    return sample
+
+def take_photo(group, sample_id):
+    photo_id = uuid.uuid4()
+    camera = Picam()
+    file_path = camera.take_still(str(photo_id)+'.jpg')
+    photo = Photo(id=photo_id,
+                  group=group,
+                  sample_id=sample_id,
+                  subject=group.subject,
+                  file_path=file_path)
+    photo.save()
+    return photo
