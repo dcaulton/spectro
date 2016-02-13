@@ -117,9 +117,9 @@ def capture_sample(request):
     Capture a photo as well if the group is configured to capture photos
     Save both records to the db
     '''
-    #TODO do these steps asynchronously, return the id of the sample synchronously
     #TODO call voice record, save a VoiceMemo record
     #TODO call sample post processing logic
+    #TODO have take_photo also run asynchronously, have it accept photo_id
     group = get_current_group()
     sample_id = uuid.uuid4()
 
@@ -134,6 +134,31 @@ def capture_sample(request):
     photo_serializer = PhotoSerializer(photo)
     composite_data = {'sample': sample_serializer.data,
                       'photo': photo_serializer.data}
+    return Response(composite_data)
+
+@api_view()
+def capture_sample_async(request):
+    '''
+    Capture a physical sample from the spectrometer according to the parameters specified in the current active group
+      from (the settings record)
+    Capture a photo as well if the group is configured to capture photos
+    Save both records to the db
+    '''
+    from django_q.tasks import async, result
+#    async('take_spectrometer_sample', group, sample_id, reading_type)
+
+    group = get_current_group()
+    sample_id = uuid.uuid4()
+
+    take_spectrometer_sample_task_id = async(take_spectrometer_sample, group, sample_id, group.reading_type)
+#    take_spectrometer_sample(sample_id=sample_id,
+#                             group=group,
+#                             reading_type=group.reading_type)
+
+#    if group.use_photo:
+#        take_photo(group, sample_id)
+
+    composite_data = {'sample_id': sample_id, 'task_id': take_spectrometer_sample_task_id}
     return Response(composite_data)
 
 @api_view()
