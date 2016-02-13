@@ -2,6 +2,7 @@ import functools
 import uuid
 
 from django.shortcuts import get_object_or_404
+from django_q.tasks import async, result
 from rest_framework import viewsets
 from rest_framework.decorators import detail_route, api_view
 from rest_framework.response import Response
@@ -124,7 +125,7 @@ def capture_sample(request):
     sample_id = uuid.uuid4()
 
     sample = take_spectrometer_sample(sample_id=sample_id,
-                                      group=group,
+                                      group_id=group.id,
                                       reading_type=group.reading_type)
 
     if group.use_photo:
@@ -144,19 +145,11 @@ def capture_sample_async(request):
     Capture a photo as well if the group is configured to capture photos
     Save both records to the db
     '''
-    from django_q.tasks import async, result
-#    async('take_spectrometer_sample', group, sample_id, reading_type)
 
     group = get_current_group()
     sample_id = uuid.uuid4()
 
-    take_spectrometer_sample_task_id = async(take_spectrometer_sample, group, sample_id, group.reading_type)
-#    take_spectrometer_sample(sample_id=sample_id,
-#                             group=group,
-#                             reading_type=group.reading_type)
-
-#    if group.use_photo:
-#        take_photo(group, sample_id)
+    take_spectrometer_sample_task_id = async(take_spectrometer_sample, sample_id, group.id, group.reading_type)
 
     composite_data = {'sample_id': sample_id, 'task_id': take_spectrometer_sample_task_id}
     return Response(composite_data)
@@ -173,7 +166,7 @@ def calibrate(request):
 
     if 'reference_sample_id' in request.query_params and request.query_params['reference_sample_id']:
         reference_sample = get_object_or_404(Sample, id=request.query_params['reference_sample_id'])
-        source_sample = take_spectrometer_sample(group=group,
+        source_sample = take_spectrometer_sample(group_id=group.id,
                                                  reading_type=group.reading_type)
 
         delta = create_sample_delta(group, source_sample, reference_sample)
@@ -196,7 +189,11 @@ def train(request):
     valid_sample_types = [Sample.SPECTROMETER, Sample.COLOR, Sample.FLUORESCENCE]
     if 'reading_type' in request.query_params and request.query_params['reading_type'] in valid_sample_types:
         if request.query_params['sample_name']:
-            sample = take_spectrometer_sample(reading_type=request.query_params['reading_type'],
+            sample_id = uuid.uuid4()
+            sample = take_spectrometer_sample(sample_id=sample_id,
+                                              group_id=None,
+                                              reading_type=request.query_params['reading_type'],
+                                              subject=None,
                                               description=request.query_params['sample_name'])
             sample_serializer = SampleSerializer(sample)
             return Response(sample_serializer.data)
@@ -253,7 +250,7 @@ def get_average_sample_value(sample_data):
     return average_value
  
 def take_spectrometer_sample(sample_id=uuid.uuid4(),
-                             group=None,
+                             group_id=None,
                              reading_type=Sample.SPECTROMETER,
                              subject=None,
                              description=''):
@@ -273,11 +270,13 @@ def take_spectrometer_sample(sample_id=uuid.uuid4(),
     average_value = get_average_sample_value(sample_data)
 
     the_subject = subject
-    if group and group.subject:  #TODO add logic that tests this condition
-        the_subject = group.subject
+    if group_id:
+        group = Group.objects.get(id=group_id)
+        if group and group.subject:  #TODO add logic that tests this condition
+            the_subject = group.subject
 
     sample = Sample(id=sample_id,
-                    group=group,
+                    group_id=group_id,
                     reading_type=reading_type,
                     record_type=Sample.PHYSICAL,
                     description=description,
@@ -286,6 +285,7 @@ def take_spectrometer_sample(sample_id=uuid.uuid4(),
                     average_magnitude=average_value)
     sample.save()
     return sample
+
 
 def int_list_to_csv_string(array_of_ints):
     '''
