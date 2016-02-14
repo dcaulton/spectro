@@ -173,13 +173,14 @@ def train(request):
     if 'reading_type' in request.query_params and request.query_params['reading_type'] in valid_sample_types:
         if request.query_params['sample_name']:
             sample_id = uuid.uuid4()
-            sample = take_spectrometer_sample(sample_id=sample_id,
-                                              group_id=None,
-                                              reading_type=request.query_params['reading_type'],
-                                              subject=None,
-                                              description=request.query_params['sample_name'])
-            sample_serializer = SampleSerializer(sample)
-            return Response(sample_serializer.data)
+            take_spectrometer_sample_task_id = async(take_spectrometer_sample, 
+                                                     sample_id=sample_id,
+                                                     group_id=None,
+                                                     reading_type=request.query_params['reading_type'],
+                                                     subject=None,
+                                                     description=request.query_params['sample_name'])
+            composite_data = {'sample': {'id': sample_id, 'task_id': take_spectrometer_sample_task_id}}
+            return Response(composite_data)
         else: #TODO add a test for this condition
             err_message = 'A non-empty sample name must be specified for a reference sample'
             return Response(data=err_message, status=409)
