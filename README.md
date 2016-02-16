@@ -34,3 +34,10 @@ Supports a Raspberry Pi, controlling a C12666MA spectrometer hosted on an Arduin
 
 ## SOFTWARE
 - Django with Python 3 
+- Raspian Wheezy
+
+## HARDWARE
+- Raspberry Pi 2 Model B with a camera module
+- Sainsmart 3.5" TFT display.  This info page from Sainsmart also has a download link to a custom image of Raspbian Wheezy with support pre-installed: http://www.sainsmart.com/sainsmart-3-5-inch-tft-lcd-320-480-touch-screen-display-for-raspberry-pi-2-b-b.html 
+- This Hamamatsu C12666MA micro spectrometer, with the breakout board from Pure Engineering: https://groupgets.com/manufacturers/hamamatsu-photonics/products/c12666ma-micro-spectrometer
+- An Arduino, I used an Arduino Uno
