@@ -28,6 +28,7 @@ class Spectrometer(object):
         if self.console_output: print('-----------during call-----------')
         command_didnt_take = True
         while command_didnt_take:
+            #TODO configure to time out after 10, or some similar number, of calls
             if self.console_output: print('-----calling-----')
             self.ser.write(command_in_bytes)
             data = str(self.ser.readline())
