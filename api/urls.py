@@ -8,7 +8,7 @@ from api.models import (Settings,
                         SampleData,
                         SampleFeature,
                         SampleMatch,
-                        Photo,
+                        Image,
                         VoiceMemo,
                         SampleDelta,
                         GroupMatchCandidate,
@@ -26,7 +26,7 @@ router.register(r'groups', views.GroupViewSet)
 router.register(r'sample_datas', views.SampleDataViewSet)
 router.register(r'sample_features', views.SampleFeatureViewSet)
 router.register(r'sample_matchs', views.SampleMatchViewSet)
-router.register(r'photos', views.PhotoViewSet)
+router.register(r'photos', views.ImageViewSet)
 router.register(r'voice_memos', views.VoiceMemoViewSet)
 router.register(r'sample_deltas', views.SampleDeltaViewSet)
 router.register(r'group_match_candidates', views.GroupMatchCandidateViewSet)

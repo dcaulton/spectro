@@ -67,7 +67,7 @@ class Sample(models.Model):
     data = models.CharField(max_length=4096)
     average_magnitude = models.IntegerField(default=0)
     representative_sample = models.ForeignKey('Sample', null=True)
-    #TODO on delete cascade to related SampleFeatures, SampleDeltas, SampleMatches, Photos, VoiceMemos
+    #TODO on delete cascade to related SampleFeatures, SampleDeltas, SampleMatches, Images, VoiceMemos
 
     class Meta:
         db_table = 'sample'
@@ -141,11 +141,18 @@ class SampleMatch(models.Model):
         db_table = 'sample_match'
 
 
-class Photo(models.Model):
+class Image(models.Model):
+    PHOTO = 'photo'
+    HISTOGRAM = 'histogram'
+    IMAGE_TYPE_CHOICES = (
+        (PHOTO, 'Photo'),
+        (HISTOGRAM, 'Histogram'),
+    )
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     created = AutoCreatedField()
     group = models.ForeignKey('Group', null=True)
     sample = models.ForeignKey('Sample', null=True)
+    type = models.CharField(max_length=32, choices=IMAGE_TYPE_CHOICES)
     subject = models.ForeignKey('Subject', null=True)
     file_path = models.CharField(max_length=1024)
 

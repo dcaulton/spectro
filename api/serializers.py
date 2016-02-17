@@ -6,7 +6,7 @@ from api.models import (Settings,
                         SampleData,
                         SampleFeature,
                         SampleMatch,
-                        Photo,
+                        Image,
                         VoiceMemo,
                         SampleDelta,
                         GroupMatchCandidate,
@@ -48,9 +48,9 @@ class SampleMatchSerializer(serializers.ModelSerializer):
         model = SampleMatch
 
 
-class PhotoSerializer(serializers.ModelSerializer):
+class ImageSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Photo
+        model = Image
 
 
 class VoiceMemoSerializer(serializers.ModelSerializer):

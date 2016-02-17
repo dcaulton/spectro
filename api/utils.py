@@ -7,19 +7,9 @@ from api.camera import Picam
 from api.models import (Sample,
                         Settings,
                         Group,
-                        Photo,
+                        Image,
                         SampleData,
                         )
-#                        SampleFeature,
-#                        SampleMatch,
-#                        VoiceMemo,
-#                        SampleDelta,
-#                        GroupMatchCandidate,
-#                        GroupMember,
-#                        GroupLimit,
-#                        Location,
-#                        Subject,
-#                       )
 from api.spectrometer import Spectrometer
 
 
@@ -120,13 +110,13 @@ def take_photo(photo_id, group, sample_id):
     '''
     camera = Picam()
     file_path = camera.take_still(str(photo_id)+'.jpg')
-    photo = Photo(id=photo_id,
+    image = Image(id=photo_id,
                   group=group,
                   sample_id=sample_id,
                   subject=group.subject,
                   file_path=file_path)
-    photo.save()
-    return photo
+    image.save()
+    return image
 
 def extract_features(sample_id=None):
     sample = get_object_or_404(Sample, id=sample_id)

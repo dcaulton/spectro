@@ -12,7 +12,7 @@ from api.models import (Settings,
                         SampleData,
                         SampleFeature,
                         SampleMatch,
-                        Photo,
+                        Image,
                         VoiceMemo,
                         SampleDelta,
                         GroupMatchCandidate,
@@ -27,7 +27,7 @@ from api.serializers import (SettingsSerializer,
                              SampleDataSerializer,
                              SampleFeatureSerializer,
                              SampleMatchSerializer,
-                             PhotoSerializer,
+                             ImageSerializer,
                              VoiceMemoSerializer,
                              SampleDeltaSerializer,
                              GroupMatchCandidateSerializer,
@@ -74,9 +74,9 @@ class SampleMatchViewSet (viewsets.ModelViewSet):
     serializer_class = SampleMatchSerializer
 
 
-class PhotoViewSet (viewsets.ModelViewSet):
-    queryset = Photo.objects.all()
-    serializer_class = PhotoSerializer
+class ImageViewSet (viewsets.ModelViewSet):
+    queryset = Image.objects.all()
+    serializer_class = ImageSerializer
 
 
 class VoiceMemoViewSet (viewsets.ModelViewSet):
