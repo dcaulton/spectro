@@ -3,14 +3,14 @@
 Supports a Raspberry Pi, controlling a C12666MA spectrometer hosted on an Arduino Uno.
 
 ## HARDWARE
-- RPi 2 with a TFT display 
-- Hamamatsu C12666MA Spectrometer mounted to an Arduino
-- RPi talks to Arduino via serial with USB
+- Raspberry Pi 2 B
+- Hamamatsu C12666MA Spectrometer mounted to an Arduino Uno
+- RPi talks to an  Arduino Uno via serial with USB
 - RPi will have a camera, to record the location of the sample
 - RPi will have a microphone to record voice notes on the sample
-- RPi may have a TFT touchscreen (for heads up mode)
+- It's probably going to be easiest to drive the RPi from a mobile phone.  There will be a process to pair the two. 
 - RPi may have a GPS receiver
-- RPi will also have a button to trigger a new reading (for headless mode)
+- RPi will have a button to trigger a new reading (for headless mode)
 - RPi creates audio or visual output to indicate a sample has been taken
 - Experimenting with packaging, but it may be a two piece tethered object, with the battery and RPi in the base and the rest in the remote.
 
@@ -34,10 +34,11 @@ Supports a Raspberry Pi, controlling a C12666MA spectrometer hosted on an Arduin
 
 ## SOFTWARE
 - Django with Python 3 
-- Raspian Wheezy
+- Raspian Jessie
+- Django-Q for a message broker
+- SQLite for the db
 
 ## HARDWARE
 - Raspberry Pi 2 Model B with a camera module
-- Sainsmart 3.5" TFT display.  This info page from Sainsmart also has a download link to a custom image of Raspbian Wheezy with support pre-installed: http://www.sainsmart.com/sainsmart-3-5-inch-tft-lcd-320-480-touch-screen-display-for-raspberry-pi-2-b-b.html 
 - This Hamamatsu C12666MA micro spectrometer, with the breakout board from Pure Engineering: https://groupgets.com/manufacturers/hamamatsu-photonics/products/c12666ma-micro-spectrometer
 - An Arduino, I used an Arduino Uno
