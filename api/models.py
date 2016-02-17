@@ -67,6 +67,7 @@ class Sample(models.Model):
     data = models.CharField(max_length=4096)
     average_magnitude = models.IntegerField(default=0)
     representative_sample = models.ForeignKey('Sample', null=True)
+    #TODO on delete cascade to related SampleFeatures, SampleDeltas, SampleMatches, Photos, VoiceMemos
 
     class Meta:
         db_table = 'sample'
@@ -122,7 +123,7 @@ class SampleFeature(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     sample = models.ForeignKey('Sample')
     feature_type = models.CharField(max_length=32, choices=FEATURE_TYPE_CHOICES)
-    sharpness = models.IntegerField()
+    frequency = models.IntegerField()
     magnitude = models.IntegerField()
 
     class Meta:

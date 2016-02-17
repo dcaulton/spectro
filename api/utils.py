@@ -127,3 +127,10 @@ def take_photo(photo_id, group, sample_id):
                   file_path=file_path)
     photo.save()
     return photo
+
+def extract_features(sample_id=None):
+    sample = get_object_or_404(Sample, id=sample_id)
+    print('Extract Features: sample data is '+str(sample.data))
+    print('Extract Features: sample average magnitude is '+str(sample.average_magnitude))
+
+
