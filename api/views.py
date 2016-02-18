@@ -49,7 +49,6 @@ class SettingsViewSet (viewsets.ModelViewSet):
     queryset = Settings.objects.all()
     serializer_class = SettingsSerializer
 
-
 class SampleViewSet (viewsets.ModelViewSet):
     queryset = Sample.objects.all()
     serializer_class = SampleSerializer
@@ -58,6 +57,18 @@ class GroupViewSet (viewsets.ModelViewSet):
     queryset = Group.objects.all()
     serializer_class = GroupSerializer
 
+    def retrieve(self, request, pk=None): #TODO add tests for this
+        '''
+        Extending the default rest_framework endpoint for fetch one group to support the custom path/pseudo id of /groups/current
+        That's the one pointed to by the settings record
+        Note that the 'current' id does NOT work for updates/deletes, etc.
+        '''
+        if pk == 'current':
+            group = get_current_group()
+        else:
+            group = get_object_or_404(self.queryset, pk=pk)
+        serializer = GroupSerializer(group)
+        return Response(serializer.data)
 
 class SampleDataViewSet (viewsets.ModelViewSet):
     queryset = SampleData.objects.all()
