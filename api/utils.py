@@ -1,7 +1,9 @@
 import functools
+import os
 import uuid
 
 from django.shortcuts import get_object_or_404
+import matplotlib.pyplot as plt
 
 from api.camera import Picam
 from api.models import (Sample,
@@ -103,6 +105,10 @@ def int_list_to_csv_string(array_of_ints):
     '''
     return functools.reduce(lambda x, y: str(x)+','+str(y), array_of_ints)
 
+def csv_string_to_int_list(csv_string):
+    int_arr = [int(v) for v in csv_string.split(',')]
+    return int_arr
+
 def take_photo(photo_id, group, sample_id):
     '''
     Calls the Picam class to have the hardware take a picture.
@@ -113,6 +119,7 @@ def take_photo(photo_id, group, sample_id):
     image = Image(id=photo_id,
                   group=group,
                   sample_id=sample_id,
+                  type=Image.PHOTO,
                   subject=group.subject,
                   file_path=file_path)
     image.save()
@@ -120,5 +127,25 @@ def take_photo(photo_id, group, sample_id):
 
 def extract_features(sample_id=None):
     sample = get_object_or_404(Sample, id=sample_id)
-    print('Extract Features: sample data is '+str(sample.data))
-    print('Extract Features: sample average magnitude is '+str(sample.average_magnitude))
+    readings = csv_string_to_int_list(sample.data)
+
+    the_title = 'Readings for '+sample.reading_type+' sample '+str(sample_id)
+    if sample.description:
+        the_title += "\n" + sample.description
+
+    x = range(len(readings))
+    plt.bar(x, readings, 1, color='black')
+    plt.title(the_title)
+    plt.xlabel('wavelength (340 - 780nm)')
+    plt.ylabel('magnitude')
+
+    root_directory = '/home/pi/Pictures'  # TODO move this into settings:IMAGE_SAVE_PATH
+    image_id = uuid.uuid4()
+    file_path = os.path.join(root_directory,(str(image_id)+'.png'))
+    image = Image(id=image_id,
+                  group=sample.group,
+                  sample_id=sample_id,
+                  type=Image.BAR_CHART,
+                  file_path=file_path)
+    image.save()  #save the image record
+    plt.savefig(file_path) #save the actual file with the image

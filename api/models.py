@@ -144,9 +144,11 @@ class SampleMatch(models.Model):
 class Image(models.Model):
     PHOTO = 'photo'
     HISTOGRAM = 'histogram'
+    BAR_CHART = 'bar_chart'
     IMAGE_TYPE_CHOICES = (
         (PHOTO, 'Photo'),
         (HISTOGRAM, 'Histogram'),
+        (BAR_CHART, 'Bar Chart'),
     )
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     created = AutoCreatedField()
