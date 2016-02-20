@@ -1,7 +1,7 @@
 import uuid
 
 from django.shortcuts import get_object_or_404
-from django_q.tasks import async, Chain
+#from django_q.tasks import async, Chain
 from rest_framework import viewsets
 from rest_framework.decorators import detail_route, api_view
 from rest_framework.response import Response
@@ -36,12 +36,13 @@ from api.serializers import (SettingsSerializer,
                              LocationSerializer,
                              SubjectSerializer,
                             )
-from api.tasks import calibrate_task, take_spectrometer_task, train_task
-from api.utils import (create_sample_delta,
-                       extract_features,
+from api.tasks import calibrate_task, take_photo_task, take_spectrometer_task, train_task
+from api.utils import (
+#                       create_sample_delta,
+#                       extract_features,
                        get_current_group,
-                       take_photo,
-                       take_spectrometer_sample,
+#                       take_photo,
+#                       take_spectrometer_sample,
                       )
 
 
@@ -144,7 +145,7 @@ def capture_sample(request):
 
     if group.use_photo:
         photo_id = uuid.uuid4()
-        take_photo_task_id = async(take_photo, photo_id, group, sample_id)
+        take_photo_task_id = take_photo_task(photo_id, group, sample_id)
         composite_data['photo'] = {'id': photo_id, 'task_id': take_photo_task_id}
 
     return Response(composite_data)
