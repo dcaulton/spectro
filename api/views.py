@@ -36,6 +36,7 @@ from api.serializers import (SettingsSerializer,
                              LocationSerializer,
                              SubjectSerializer,
                             )
+from api.tasks import calibrate_task, take_spectrometer_task, train_task
 from api.utils import (create_sample_delta,
                        extract_features,
                        get_current_group,
@@ -137,10 +138,7 @@ def capture_sample(request):
     group = get_current_group()
     sample_id = uuid.uuid4()
 
-    take_spectrometer_sample_task_id = async(take_spectrometer_sample,
-                                             sample_id,
-                                             group.id,
-                                             group.reading_type)
+    take_spectrometer_sample_task_id = take_spectrometer_task(sample_id, group)
 
     composite_data = {'sample': {'id': sample_id, 'task_id': take_spectrometer_sample_task_id}}
 
@@ -164,10 +162,7 @@ def calibrate(request):
     if 'reference_sample_id' in request.query_params and request.query_params['reference_sample_id']:
         source_sample_id = uuid.uuid4()
         delta_id = uuid.uuid4()
-        chain = Chain(cached=True)
-        chain.append(take_spectrometer_sample, source_sample_id, group.id, group.reading_type)
-        chain.append(create_sample_delta, delta_id, group.id, source_sample_id, request.query_params['reference_sample_id'])
-        chain.run()
+        calibrate_task(source_sample_id, delta_id, group, request.query_params['reference_sample_id'])
         composite_data = {'sample': {'id': source_sample_id},
                           'sample_delta': {'id': delta_id}}
 
@@ -188,16 +183,7 @@ def train(request):
     if 'reading_type' in request.query_params and request.query_params['reading_type'] in valid_sample_types:
         if request.query_params['sample_name']:
             sample_id = uuid.uuid4()
-            chain = Chain(cached=True)
-            chain.append(take_spectrometer_sample,
-                         sample_id=sample_id,
-                         group_id=None,
-                         reading_type=request.query_params['reading_type'],
-                         subject=None,
-                         description=request.query_params['sample_name'])
-            chain.append(extract_features,
-                         sample_id=sample_id)
-            chain.run()
+            train_task(sample_id, request.query_params['reading_type'], request.query_params['sample_name'])
             composite_data = {'sample': {'id': sample_id}}
             return Response(composite_data)
         else: #TODO add a test for this condition
