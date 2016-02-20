@@ -43,20 +43,28 @@ def capture_sample_task(group):
     return return_dict
 
 
-def calibrate_task(source_sample_id, delta_id, group, reference_sample_id):
+def calibrate_task(group, reference_sample_id):
     '''
     Handles asynchronous processing of all the tasks required for a calibration reading
     '''
+    source_sample_id = uuid.uuid4()
+    delta_id = uuid.uuid4()
+
     chain = Chain(cached=True)
     chain.append(take_spectrometer_sample, source_sample_id, group.id, group.reading_type)
     chain.append(create_sample_delta, delta_id, group.id, source_sample_id, reference_sample_id)
     chain.run()
+
+    return {'sample_id': source_sample_id, 'sample_delta_id': delta_id}
 
 
 def train_task(sample_id, reading_type, sample_name):
     '''
     Handles asynchronous processing of all the tasks required to train the spectrometer on a substance
     '''
+    sample_id = uuid.uuid4()
+    chart_id = uuid.uuid4()
+
     chain = Chain(cached=True)
     chain.append(take_spectrometer_sample,
                  sample_id=sample_id,
@@ -65,5 +73,7 @@ def train_task(sample_id, reading_type, sample_name):
                  subject=None,
                  description=sample_name)
     chain.append(generate_chart,
-                 sample_id=sample_id)
+                 sample_id=sample_id,
+                 image_id=chart_id)
     chain.run()
+    return {'sample_id': sample_id, 'chart_id': chart_id}

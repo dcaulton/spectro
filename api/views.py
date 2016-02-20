@@ -147,13 +147,9 @@ def calibrate(request):
     group = get_current_group()
 
     if 'reference_sample_id' in request.query_params and request.query_params['reference_sample_id']:
-        source_sample_id = uuid.uuid4()
-        delta_id = uuid.uuid4()
-        calibrate_task(source_sample_id, delta_id, group, request.query_params['reference_sample_id'])
-        composite_data = {'sample': {'id': source_sample_id},
-                          'sample_delta': {'id': delta_id}}
+        return_data = calibrate_task(group, request.query_params['reference_sample_id'])
 
-        return Response(composite_data)
+        return Response(return_data)
     else:  # TODO add a test for this condition
         err_message = 'An id must be specified for a reference sample'
         return Response(data=err_message, status=409)
@@ -170,10 +166,8 @@ def train(request):
     valid_sample_types = [Sample.SPECTROMETER, Sample.COLOR, Sample.FLUORESCENCE]
     if 'reading_type' in request.query_params and request.query_params['reading_type'] in valid_sample_types:
         if request.query_params['sample_name']:
-            sample_id = uuid.uuid4()
-            train_task(sample_id, request.query_params['reading_type'], request.query_params['sample_name'])
-            composite_data = {'sample': {'id': sample_id}}
-            return Response(composite_data)
+            return_data = train_task(request.query_params['reading_type'], request.query_params['sample_name'])
+            return Response(returndata)
         else:  # TODO add a test for this condition
             err_message = 'A non-empty sample name must be specified for a reference sample'
             return Response(data=err_message, status=409)

@@ -1,6 +1,8 @@
-import serial
+import logging
 import sys
 from time import sleep
+
+import serial
 
 from api.exceptions import SpectrometerSerialError
 
@@ -9,10 +11,10 @@ class Spectrometer(object):
     '''
     Interfaces with the Spectrometer via the serial port
     '''
-    def __init__(self, console_output=False):
+    def __init__(self):
         self.ser = serial.Serial(port='/dev/ttyACM0', baudrate=115200, timeout=1)  # TODO move this to the config file
-        self.console_output = console_output
         self.max_number_of_retries = 3  # TODO move this to the config file
+        self.logger = logging.getLogger('spectro')
 
     def take_spectrometer_reading(self):
         self.do_the_call(1)
@@ -30,29 +32,22 @@ class Spectrometer(object):
         '''
         Interface with the spectrometer via the serial port
         '''
-        raise SpectrometerSerialError  # TODO catch this and get it to the browser
         self.ser.reset_input_buffer()
         received_bytes_string = "b'" + str(command_number) + "\\r\\n'"
         command_in_bytes = bytes(str(command_number), 'ascii')
-        if self.console_output:  # TODO replace all these console output lines with logging.debug
-            print('-----------during call-----------')
+        self.logger.info('-----------during call-----------')
         command_didnt_take = True
         num_calls = 0
         while command_didnt_take:
-            # TODO configure to time out after 10, or some similar number, of calls
-            if self.console_output:
-                print('-----calling-----')
+            self.logger.info('-----calling spectrometer-----')
             self.ser.write(command_in_bytes)
             data = str(self.ser.readline())
-            if self.console_output:
-                print(data)
+            self.logger.info('Spectrometer data is ' + data)
             if (data == received_bytes_string):
-                if self.console_output:
-                    print('command was received')
+                self.logger.info('command was received by spectrometer')
                 command_didnt_take = False
             else:
-                if self.console_output:
-                    print('command didnt take: ' + data)
+                self.logger.warning('command didnt take: ' + data)
             num_calls += 1
             if num_calls > self.max_number_of_retries:
                 raise SpectrometerSerialError  # TODO this isn't meshing with rest_framework correctly.  Troubleshoot
@@ -60,18 +55,14 @@ class Spectrometer(object):
 
     def get_results(self):
         data = []
-        if self.console_output:
-            print('-----------waiting for results -----------')
+        self.logger.info('-----------waiting for results -----------')
         data.append(str(self.ser.readline()))
-        if self.console_output:
-            print(data[-1])
+        self.logger.info(data[-1])
         while 'done' not in data[-1]:
             data.append(str(self.ser.readline()))
-            if self.console_output:
-                print(data[-1])
+            self.logger.info(data[-1])
             sleep(.3)
-        if self.console_output:
-            print('-- results have been collected --')
+        self.logger.info('-- results have been collected --')
         the_string_of_data = data[-2][2:-1]  # truncate 'b' at the front of the string
         data_as_array = the_string_of_data.split(',')[:-1]  # truncate junk data with newline after the last comma
         data_as_int_array = [int(x) for x in data_as_array if x.isdigit()]
@@ -82,7 +73,7 @@ class Spectrometer(object):
 
 
 if __name__ == '__main__':
-    spectrometer = Spectrometer(console_output=True)
+    spectrometer = Spectrometer()
     if len(sys.argv) > 1:
         command_number = int(sys.argv[1])
     else:
