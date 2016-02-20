@@ -84,6 +84,7 @@ class Group(models.Model):
                                     default=Sample.SPECTROMETER)
     use_voice_memo = models.BooleanField()
     use_photo = models.BooleanField()
+    generate_chart = models.BooleanField()
     post_capture_processing = models.CharField(max_length=32,
                                                choices=Sample.POST_CAPTURE_PROCESSING_CHOICES,
                                                default=Sample.FIND_MATCH)

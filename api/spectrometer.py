@@ -6,7 +6,7 @@ from time import sleep
 class Spectrometer(object):
 
     def __init__(self, console_output=False):
-        self.ser = serial.Serial(port='/dev/ttyACM0', baudrate=115200, timeout=1)
+        self.ser = serial.Serial(port='/dev/ttyACM0', baudrate=115200, timeout=1)  #TODO move this to the config file
         self.console_output = console_output
 
     def take_spectrometer_reading(self):

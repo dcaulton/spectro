@@ -95,7 +95,7 @@ def take_photo(photo_id, group, sample_id):
     image.save()
     return image
 
-def extract_features(sample_id=None):
+def generate_chart(sample_id, image_id):
     sample = get_object_or_404(Sample, id=sample_id)
     readings = csv_string_to_int_list(sample.data)
 
@@ -110,7 +110,6 @@ def extract_features(sample_id=None):
     plt.ylabel('magnitude')
 
     root_directory = '/home/pi/Pictures'  # TODO move this into settings:IMAGE_SAVE_PATH
-    image_id = uuid.uuid4()
     file_path = os.path.join(root_directory,(str(image_id)+'.png'))
     image = Image(id=image_id,
                   group=sample.group,

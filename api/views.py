@@ -36,14 +36,8 @@ from api.serializers import (SettingsSerializer,
                              LocationSerializer,
                              SubjectSerializer,
                             )
-from api.tasks import calibrate_task, take_photo_task, take_spectrometer_task, train_task
-from api.utils import (
-#                       create_sample_delta,
-#                       extract_features,
-                       get_current_group,
-#                       take_photo,
-#                       take_spectrometer_sample,
-                      )
+from api.tasks import calibrate_task, capture_sample_task, train_task
+from api.utils import get_current_group
 
 
 
@@ -135,20 +129,11 @@ def capture_sample(request):
     Capture a photo as well if the group is configured to capture photos
     Both capture tasks are run asynchronously, the sample_id, photo_id, and task ids for both captures are returned
     '''
-
     group = get_current_group()
-    sample_id = uuid.uuid4()
 
-    take_spectrometer_sample_task_id = take_spectrometer_task(sample_id, group)
+    response_dict = capture_sample_task(group)
 
-    composite_data = {'sample': {'id': sample_id, 'task_id': take_spectrometer_sample_task_id}}
-
-    if group.use_photo:
-        photo_id = uuid.uuid4()
-        take_photo_task_id = take_photo_task(photo_id, group, sample_id)
-        composite_data['photo'] = {'id': photo_id, 'task_id': take_photo_task_id}
-
-    return Response(composite_data)
+    return Response(response_dict)
 
 @api_view()
 def calibrate(request):
