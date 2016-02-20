@@ -7,7 +7,7 @@ from api.services import (create_sample_delta,
                           get_current_group,
                           take_photo,
                           take_spectrometer_sample,
-                         )
+                          )
 
 
 def capture_sample_task(group):
@@ -42,14 +42,16 @@ def capture_sample_task(group):
     chain.run()
     return return_dict
 
+
 def calibrate_task(source_sample_id, delta_id, group, reference_sample_id):
     '''
-    Handles asynchronous processing of all the tasks required for a calibration reading 
+    Handles asynchronous processing of all the tasks required for a calibration reading
     '''
     chain = Chain(cached=True)
     chain.append(take_spectrometer_sample, source_sample_id, group.id, group.reading_type)
     chain.append(create_sample_delta, delta_id, group.id, source_sample_id, reference_sample_id)
     chain.run()
+
 
 def train_task(sample_id, reading_type, sample_name):
     '''

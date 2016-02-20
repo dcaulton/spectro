@@ -10,6 +10,7 @@ djangorestframework==3.3.2
 future==0.15.2
 matplotlib==1.5.1
 numpy==1.10.4
+pep8==1.7.0
 picamera==1.10
 pyparsing==2.1.0
 pyserial==3.0.1

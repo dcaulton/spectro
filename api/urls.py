@@ -16,7 +16,7 @@ from api.models import (Settings,
                         GroupLimit,
                         Location,
                         Subject,
-                       )
+                        )
 
 # Create a router and register our viewsets with it.
 router = DefaultRouter()

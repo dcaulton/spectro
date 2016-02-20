@@ -1,7 +1,6 @@
 import uuid
 
 from django.shortcuts import get_object_or_404
-#from django_q.tasks import async, Chain
 from rest_framework import viewsets
 from rest_framework.decorators import detail_route, api_view
 from rest_framework.response import Response
@@ -20,7 +19,7 @@ from api.models import (Settings,
                         GroupLimit,
                         Location,
                         Subject,
-                       )
+                        )
 from api.serializers import (SettingsSerializer,
                              SampleSerializer,
                              GroupSerializer,
@@ -35,25 +34,26 @@ from api.serializers import (SettingsSerializer,
                              GroupLimitSerializer,
                              LocationSerializer,
                              SubjectSerializer,
-                            )
+                             )
 from api.tasks import calibrate_task, capture_sample_task, train_task
 from api.utils import get_current_group
-
 
 
 class SettingsViewSet (viewsets.ModelViewSet):
     queryset = Settings.objects.all()
     serializer_class = SettingsSerializer
 
+
 class SampleViewSet (viewsets.ModelViewSet):
     queryset = Sample.objects.all()
     serializer_class = SampleSerializer
+
 
 class GroupViewSet (viewsets.ModelViewSet):
     queryset = Group.objects.all()
     serializer_class = GroupSerializer
 
-    def retrieve(self, request, pk=None): #TODO add tests for this
+    def retrieve(self, request, pk=None):  # TODO add tests for this
         '''
         Extending the default rest_framework endpoint for fetch one group to support the custom path/pseudo id of /groups/current
         That's the one pointed to by the settings record
@@ -65,6 +65,7 @@ class GroupViewSet (viewsets.ModelViewSet):
             group = get_object_or_404(self.queryset, pk=pk)
         serializer = GroupSerializer(group)
         return Response(serializer.data)
+
 
 class SampleDataViewSet (viewsets.ModelViewSet):
     queryset = SampleData.objects.all()
@@ -124,16 +125,16 @@ class SubjectViewSet (viewsets.ModelViewSet):
 @api_view()
 def capture_sample(request):
     '''
-    Capture a physical sample from the spectrometer according to the parameters specified in the current active group
-      from (the settings record)
-    Capture a photo as well if the group is configured to capture photos
-    Both capture tasks are run asynchronously, the sample_id, photo_id, and task ids for both captures are returned
+    Calls the chain of tasks associated with getting a physical sample from the spectrometer according to the parameters
+        specified in the current active group from (the settings record)
+    Tasks are run asynchronously, relevant ids for created objects are returned
     '''
     group = get_current_group()
 
     response_dict = capture_sample_task(group)
 
     return Response(response_dict)
+
 
 @api_view()
 def calibrate(request):
@@ -153,9 +154,10 @@ def calibrate(request):
                           'sample_delta': {'id': delta_id}}
 
         return Response(composite_data)
-    else:  #TODO add a test for this condition
+    else:  # TODO add a test for this condition
         err_message = 'An id must be specified for a reference sample'
         return Response(data=err_message, status=409)
+
 
 @api_view()
 def train(request):
@@ -172,10 +174,10 @@ def train(request):
             train_task(sample_id, request.query_params['reading_type'], request.query_params['sample_name'])
             composite_data = {'sample': {'id': sample_id}}
             return Response(composite_data)
-        else: #TODO add a test for this condition
+        else:  # TODO add a test for this condition
             err_message = 'A non-empty sample name must be specified for a reference sample'
             return Response(data=err_message, status=409)
     else:
-        #TODO add a test for this condition
-        err_message = 'Invalid sample type, must be one of these: '+str(valid_sample_types)
+        # TODO add a test for this condition
+        err_message = 'Invalid sample type, must be one of these: ' + str(valid_sample_types)
         return Response(data=err_message, status=409)

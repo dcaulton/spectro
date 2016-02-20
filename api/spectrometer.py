@@ -2,12 +2,17 @@ import serial
 import sys
 from time import sleep
 
+from api.exceptions import SpectrometerSerialError
+
 
 class Spectrometer(object):
-
+    '''
+    Interfaces with the Spectrometer via the serial port
+    '''
     def __init__(self, console_output=False):
-        self.ser = serial.Serial(port='/dev/ttyACM0', baudrate=115200, timeout=1)  #TODO move this to the config file
+        self.ser = serial.Serial(port='/dev/ttyACM0', baudrate=115200, timeout=1)  # TODO move this to the config file
         self.console_output = console_output
+        self.max_number_of_retries = 3  # TODO move this to the config file
 
     def take_spectrometer_reading(self):
         self.do_the_call(1)
@@ -22,36 +27,53 @@ class Spectrometer(object):
         return self.get_results()
 
     def do_the_call(self, command_number):
+        '''
+        Interface with the spectrometer via the serial port
+        '''
+        raise SpectrometerSerialError  # TODO catch this and get it to the browser
         self.ser.reset_input_buffer()
-        received_bytes_string = "b'"+str(command_number)+"\\r\\n'"
+        received_bytes_string = "b'" + str(command_number) + "\\r\\n'"
         command_in_bytes = bytes(str(command_number), 'ascii')
-        if self.console_output: print('-----------during call-----------')
+        if self.console_output:  # TODO replace all these console output lines with logging.debug
+            print('-----------during call-----------')
         command_didnt_take = True
+        num_calls = 0
         while command_didnt_take:
-            #TODO configure to time out after 10, or some similar number, of calls
-            if self.console_output: print('-----calling-----')
+            # TODO configure to time out after 10, or some similar number, of calls
+            if self.console_output:
+                print('-----calling-----')
             self.ser.write(command_in_bytes)
             data = str(self.ser.readline())
-            if self.console_output: print(data)
+            if self.console_output:
+                print(data)
             if (data == received_bytes_string):
-                if self.console_output: print('command was received')
+                if self.console_output:
+                    print('command was received')
                 command_didnt_take = False
             else:
-                if self.console_output: print('command didnt take: '+data)
+                if self.console_output:
+                    print('command didnt take: ' + data)
+            num_calls += 1
+            if num_calls > self.max_number_of_retries:
+                raise SpectrometerSerialError  # TODO this isn't meshing with rest_framework correctly.  Troubleshoot
             sleep(1)
 
     def get_results(self):
         data = []
-        if self.console_output: print('-----------waiting for results -----------')
+        if self.console_output:
+            print('-----------waiting for results -----------')
         data.append(str(self.ser.readline()))
-        if self.console_output: print(data[-1])
+        if self.console_output:
+            print(data[-1])
         while 'done' not in data[-1]:
             data.append(str(self.ser.readline()))
-            if self.console_output: print(data[-1])
+            if self.console_output:
+                print(data[-1])
             sleep(.3)
-        if self.console_output: print('-- results have been collected --')
+        if self.console_output:
+            print('-- results have been collected --')
         the_string_of_data = data[-2][2:-1]  # truncate 'b' at the front of the string
-        data_as_array = the_string_of_data.split(',')[:-1] # truncate junk data with newline after the last comma
+        data_as_array = the_string_of_data.split(',')[:-1]  # truncate junk data with newline after the last comma
         data_as_int_array = [int(x) for x in data_as_array if x.isdigit()]
         if len(data_as_int_array) == 256:
             return data_as_int_array

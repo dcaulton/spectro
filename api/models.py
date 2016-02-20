@@ -4,7 +4,9 @@ from django.db import models, transaction
 from django.contrib.auth.models import User
 from model_utils.fields import AutoCreatedField
 
-#Thank you Senko Rašić: http://goodcode.io/articles/django-singleton-models/
+# Thank you Senko Rašić: http://goodcode.io/articles/django-singleton-models/
+
+
 class SingletonModel(models.Model):
     class Meta:
         abstract = True
@@ -39,9 +41,9 @@ class Sample(models.Model):
         (FLUORESCENCE, 'Fluorescence'),
     )
 
-    PHYSICAL = 'Physical' #taken from this spectrometer
-    VIRTUAL = 'Virtual' #estimated from physical data of an untested compound
-    DERIVED = 'Defined' #created from merging samples
+    PHYSICAL = 'Physical'  # taken from this spectrometer
+    VIRTUAL = 'Virtual'  # estimated from physical data of an untested compound
+    DERIVED = 'Defined'  # created from merging samples
     RECORD_TYPE_CHOICES = (
         (PHYSICAL, 'Physical'),
         (VIRTUAL, 'Virtual'),
@@ -67,7 +69,7 @@ class Sample(models.Model):
     data = models.CharField(max_length=4096)
     average_magnitude = models.IntegerField(default=0)
     representative_sample = models.ForeignKey('Sample', null=True)
-    #TODO on delete cascade to related SampleFeatures, SampleDeltas, SampleMatches, Images, VoiceMemos
+    # TODO on delete cascade to related SampleFeatures, SampleDeltas, SampleMatches, Images, VoiceMemos
 
     class Meta:
         db_table = 'sample'
@@ -117,10 +119,10 @@ class SampleFeature(models.Model):
         (VALLEY, 'Valley'),
         (SPIKE, 'Spike'),
         (HOLE, 'Hole'),
-        (PLATEAU_START,'Start of Plateau'),
+        (PLATEAU_START, 'Start of Plateau'),
         (PLATEAU_END, 'End of Plateau'),
     )
-    
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     sample = models.ForeignKey('Sample')
     feature_type = models.CharField(max_length=32, choices=FEATURE_TYPE_CHOICES)
@@ -133,8 +135,8 @@ class SampleFeature(models.Model):
 
 class SampleMatch(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    source_sample = models.ForeignKey('Sample', related_name = 'samplematch_source_sample')
-    reference_sample = models.ForeignKey('Sample', related_name = 'samplematch_reference_sample')
+    source_sample = models.ForeignKey('Sample', related_name='samplematch_source_sample')
+    reference_sample = models.ForeignKey('Sample', related_name='samplematch_reference_sample')
     delta = models.ForeignKey('SampleDelta', null=True)
     rating = models.FloatField(default=0.0)
 
@@ -176,8 +178,8 @@ class VoiceMemo(models.Model):
 class SampleDelta(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     group = models.ForeignKey('Group', null=True)
-    source_sample = models.ForeignKey('Sample', related_name = 'sampledelta_source_sample', null=True)
-    reference_sample = models.ForeignKey('Sample', related_name = 'sampledelta_reference_sample', null=True)
+    source_sample = models.ForeignKey('Sample', related_name='sampledelta_source_sample', null=True)
+    reference_sample = models.ForeignKey('Sample', related_name='sampledelta_reference_sample', null=True)
     data = models.CharField(max_length=4096)
 
     class Meta:
@@ -186,8 +188,8 @@ class SampleDelta(models.Model):
 
 class GroupMatchCandidate(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    group_id_of_sample = models.ForeignKey('Group', related_name = 'source_sample_group')
-    group_id_of_reference_sample = models.ForeignKey('Group', related_name = 'reference_sample_group')
+    group_id_of_sample = models.ForeignKey('Group', related_name='source_sample_group')
+    group_id_of_reference_sample = models.ForeignKey('Group', related_name='reference_sample_group')
 
     class Meta:
         db_table = 'group_match_candidate'
@@ -208,7 +210,7 @@ class GroupMember(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     created = AutoCreatedField()
     group = models.ForeignKey('Group')
-    username = models.CharField(max_length=64)   #make this a foreign key to the Django admin User table
+    username = models.CharField(max_length=64)  # TODO make this a foreign key to the Django admin User table
     user = models.ForeignKey('auth.User', related_name='groupmember')
     role = models.CharField(max_length=32, choices=ROLE_CHOICES)
 
@@ -228,8 +230,8 @@ class GroupLimit(models.Model):
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     group = models.ForeignKey('Group')
-    upper_limit = models.ForeignKey('Sample', related_name = 'upper_limit', null=True)
-    lower_limit = models.ForeignKey('Sample', related_name = 'lower_limit', null=True)
+    upper_limit = models.ForeignKey('Sample', related_name='upper_limit', null=True)
+    lower_limit = models.ForeignKey('Sample', related_name='lower_limit', null=True)
     limits_exceeded_action = models.CharField(max_length=32, choices=LIMITS_EXCEEDED_ACTION_CHOICES)
 
     class Meta:
@@ -258,5 +260,3 @@ class Subject(models.Model):
 
     class Meta:
         db_table = 'subject'
-
-

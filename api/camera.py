@@ -10,7 +10,7 @@ class Picam(object):
     '''
 
     def __init__(self):
-        self.root_directory = '/home/pi/Pictures' #TODO move this into settings.py:IMAGE_SAVE_PATH
+        self.root_directory = '/home/pi/Pictures'  # TODO move this into settings.py:IMAGE_SAVE_PATH
 
     def take_still(self, pic_name, image_width=1200, image_height=900):
         with picamera.PiCamera() as camera:

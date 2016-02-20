@@ -11,13 +11,14 @@ from api.models import (Sample,
                         Image,
                         SampleData,
                         SampleDelta,
-                       )
+                        )
 from api.spectrometer import Spectrometer
 from api.utils import (csv_string_to_int_list,
                        get_average_sample_value,
                        get_current_group,
                        int_list_to_csv_string,
-                      )
+                       )
+
 
 def create_sample_delta(delta_id, group_id, source_sample_id, reference_sample_id):
     '''
@@ -42,6 +43,7 @@ def create_sample_delta(delta_id, group_id, source_sample_id, reference_sample_i
     sample_delta.save()
     return sample_delta
 
+
 def take_spectrometer_sample(sample_id=uuid.uuid4(),
                              group_id=None,
                              reading_type=Sample.SPECTROMETER,
@@ -65,7 +67,7 @@ def take_spectrometer_sample(sample_id=uuid.uuid4(),
     the_subject = subject
     if group_id:
         group = Group.objects.get(id=group_id)
-        if group and group.subject:  #TODO add logic that tests this condition
+        if group and group.subject:  # TODO add logic that tests this condition
             the_subject = group.subject
 
     sample = Sample(id=sample_id,
@@ -79,13 +81,14 @@ def take_spectrometer_sample(sample_id=uuid.uuid4(),
     sample.save()
     return sample
 
+
 def take_photo(photo_id, group, sample_id):
     '''
     Calls the Picam class to have the hardware take a picture.
     Returns a Picture object
     '''
     camera = Picam()
-    file_path = camera.take_still(str(photo_id)+'.jpg')
+    file_path = camera.take_still(str(photo_id) + '.jpg')
     image = Image(id=photo_id,
                   group=group,
                   sample_id=sample_id,
@@ -95,11 +98,12 @@ def take_photo(photo_id, group, sample_id):
     image.save()
     return image
 
+
 def generate_chart(sample_id, image_id):
     sample = get_object_or_404(Sample, id=sample_id)
     readings = csv_string_to_int_list(sample.data)
 
-    the_title = 'Readings for '+sample.reading_type+' sample '+str(sample_id)
+    the_title = 'Readings for ' + sample.reading_type + ' sample ' + str(sample_id)
     if sample.description:
         the_title += "\n" + sample.description
 
@@ -110,11 +114,11 @@ def generate_chart(sample_id, image_id):
     plt.ylabel('magnitude')
 
     root_directory = '/home/pi/Pictures'  # TODO move this into settings:IMAGE_SAVE_PATH
-    file_path = os.path.join(root_directory,(str(image_id)+'.png'))
+    file_path = os.path.join(root_directory, (str(image_id) + '.png'))
     image = Image(id=image_id,
                   group=sample.group,
                   sample_id=sample_id,
                   type=Image.BAR_CHART,
                   file_path=file_path)
-    image.save()  #save the image record
-    plt.savefig(file_path) #save the actual file with the image
+    image.save()  # save the image record
+    plt.savefig(file_path)  # save the actual file with the image

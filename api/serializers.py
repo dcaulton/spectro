@@ -14,7 +14,7 @@ from api.models import (Settings,
                         GroupLimit,
                         Location,
                         Subject,
-                       )
+                        )
 
 
 class SettingsSerializer(serializers.ModelSerializer):
