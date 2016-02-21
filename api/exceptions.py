@@ -13,6 +13,8 @@ class SpectrometerConnectionError(SpectroBaseError):
     '''
     The spectrometer is not connected or is not responding to calls.
     '''
+    detail = 'Spectrometer host Arduino is not plugged in'
+
 
 class SpectrometerRetriesError(SpectroBaseError):
 

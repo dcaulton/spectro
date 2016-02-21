@@ -66,7 +66,6 @@ class GroupViewSet (viewsets.ModelViewSet):
             group = get_object_or_404(self.queryset, pk=pk)
         serializer = GroupSerializer(group)
         return Response(serializer.data)
-
     # TODO support 'current' endpoint for update, disallow POST OR DELETE on the current endpoint, return a 409
 
 

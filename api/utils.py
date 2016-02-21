@@ -18,7 +18,7 @@ def requires_connected_spectrometer(func):
     '''
     def requires_connected_spectrometer_and_call(*args, **kwargs):
         if not spectrometer_is_connected():
-            raise SpectrometerConnectionError('Spectrometer host Arduino is not plugged in')
+            raise SpectrometerConnectionError()
         return func(*args, **kwargs)
     return requires_connected_spectrometer_and_call
     
