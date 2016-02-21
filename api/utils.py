@@ -1,8 +1,32 @@
 import functools
+import os
 
+from django.conf import settings
 from django.shortcuts import get_object_or_404
 
+from api.exceptions import SpectrometerConnectionError
 from api.models import Group, Settings
+
+
+def get_error_string_for_api(exception):
+    return exception.__class__.__name__ + ' : ' + str(exception)
+
+
+def requires_connected_spectrometer(func):
+    '''
+    Decorator that checks if the Arduino is plugged in at the expected mount point
+    '''
+    def requires_connected_spectrometer_and_call(*args, **kwargs):
+        if not spectrometer_is_connected():
+            raise SpectrometerConnectionError('Spectrometer host Arduino is not plugged in')
+        return func(*args, **kwargs)
+    return requires_connected_spectrometer_and_call
+    
+
+def spectrometer_is_connected():
+    if os.path.exists(settings.SPECTROMETER_MOUNT_POINT):
+        return True
+    return False
 
 
 def get_current_group():

@@ -185,3 +185,5 @@ LOGGING = {
         },
     },
 }
+
+SPECTROMETER_MOUNT_POINT = '/dev/ttyACM0'

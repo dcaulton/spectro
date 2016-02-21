@@ -4,7 +4,7 @@ from time import sleep
 
 import serial
 
-from api.exceptions import SpectrometerSerialError
+from api.exceptions import SpectrometerRetriesError
 
 
 class Spectrometer(object):
@@ -50,7 +50,7 @@ class Spectrometer(object):
                 self.logger.warning('command didnt take: ' + data)
             num_calls += 1
             if num_calls > self.max_number_of_retries:
-                raise SpectrometerSerialError  # TODO this isn't meshing with rest_framework correctly.  Troubleshoot
+                raise SpectrometerRetriesError  # TODO this isn't meshing with rest_framework correctly.  Troubleshoot
             sleep(1)
 
     def get_results(self):

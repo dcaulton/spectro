@@ -36,7 +36,8 @@ from api.serializers import (SettingsSerializer,
                              SubjectSerializer,
                              )
 from api.tasks import calibrate_task, capture_sample_task, train_task
-from api.utils import get_current_group
+from api.utils import get_current_group, get_error_string_for_api
+
 
 
 class SettingsViewSet (viewsets.ModelViewSet):
@@ -61,10 +62,12 @@ class GroupViewSet (viewsets.ModelViewSet):
         '''
         if pk == 'current':
             group = get_current_group()
-        else:
+        else:  # TODO just defer to super() from here on
             group = get_object_or_404(self.queryset, pk=pk)
         serializer = GroupSerializer(group)
         return Response(serializer.data)
+
+    # TODO support 'current' endpoint for update, disallow POST OR DELETE on the current endpoint, return a 409
 
 
 class SampleDataViewSet (viewsets.ModelViewSet):
@@ -131,9 +134,11 @@ def capture_sample(request):
     '''
     group = get_current_group()
 
-    response_dict = capture_sample_task(group)
-
-    return Response(response_dict)
+    try:
+        response_dict = capture_sample_task(group)
+        return Response(response_dict)
+    except Exception as e:
+        return Response(get_error_string_for_api(e), status=e.status_code)
 
 
 @api_view()
@@ -147,9 +152,11 @@ def calibrate(request):
     group = get_current_group()
 
     if 'reference_sample_id' in request.query_params and request.query_params['reference_sample_id']:
-        return_data = calibrate_task(group, request.query_params['reference_sample_id'])
-
-        return Response(return_data)
+        try:
+            return_data = calibrate_task(group, request.query_params['reference_sample_id'])
+            return Response(return_data)
+        except Exception as e:
+            return Response(get_error_string_for_api(e), status=e.status_code)
     else:  # TODO add a test for this condition
         err_message = 'An id must be specified for a reference sample'
         return Response(data=err_message, status=409)
@@ -166,8 +173,11 @@ def train(request):
     valid_sample_types = [Sample.SPECTROMETER, Sample.COLOR, Sample.FLUORESCENCE]
     if 'reading_type' in request.query_params and request.query_params['reading_type'] in valid_sample_types:
         if request.query_params['sample_name']:
-            return_data = train_task(request.query_params['reading_type'], request.query_params['sample_name'])
-            return Response(returndata)
+            try:
+                return_data = train_task(request.query_params['reading_type'], request.query_params['sample_name'])
+                return Response(returndata)
+            except Exception as e:
+                return Response(get_error_string_for_api(e), status=e.status_code)
         else:  # TODO add a test for this condition
             err_message = 'A non-empty sample name must be specified for a reference sample'
             return Response(data=err_message, status=409)

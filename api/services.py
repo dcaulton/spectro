@@ -13,6 +13,7 @@ from api.models import (Sample,
                         SampleDelta,
                         )
 from api.spectrometer import Spectrometer
+
 from api.utils import (csv_string_to_int_list,
                        get_average_sample_value,
                        get_current_group,
@@ -60,6 +61,8 @@ def take_spectrometer_sample(sample_id=uuid.uuid4(),
         sample_data = spectrometer.take_color_reading()
     if reading_type == Sample.FLUORESCENCE:
         sample_data = spectrometer.take_fluorescence_reading()
+    else:
+        pass  # TODO throw some kind of error?  at least verify everything downstream is sample_data=None-tolerant
 
     sample_data_csv_string = int_list_to_csv_string(sample_data)
     average_value = get_average_sample_value(sample_data)

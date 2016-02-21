@@ -9,10 +9,14 @@ class SpectroBaseError(APIException):
     status_code = 400
 
 
-class SpectrometerSerialError(SpectroBaseError):
+class SpectrometerConnectionError(SpectroBaseError):
+    '''
+    The spectrometer is not connected or is not responding to calls.
+    '''
+
+class SpectrometerRetriesError(SpectroBaseError):
 
     """
     The Spectrometer is not responding to calls on the serial port
     """
-    status_code = 400
     detail = 'exceeded max number of retries when calling spectrometer'

@@ -8,8 +8,11 @@ from api.services import (create_sample_delta,
                           take_photo,
                           take_spectrometer_sample,
                           )
+from api.utils import requires_connected_spectrometer
 
 
+
+@requires_connected_spectrometer
 def capture_sample_task(group):
     '''
     Handles asynchronous calling of the spectrometer to take a reading
@@ -43,6 +46,7 @@ def capture_sample_task(group):
     return return_dict
 
 
+@requires_connected_spectrometer
 def calibrate_task(group, reference_sample_id):
     '''
     Handles asynchronous processing of all the tasks required for a calibration reading
@@ -58,6 +62,7 @@ def calibrate_task(group, reference_sample_id):
     return {'sample_id': source_sample_id, 'sample_delta_id': delta_id}
 
 
+@requires_connected_spectrometer
 def train_task(sample_id, reading_type, sample_name):
     '''
     Handles asynchronous processing of all the tasks required to train the spectrometer on a substance
