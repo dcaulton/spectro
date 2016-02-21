@@ -1,3 +1,6 @@
+#UPDATE 2.21.16
+I'm pausing this project for now.  At the time I bought it, I didn't know how good the spectrometer was in terms of accuracy, repeatability, etc.  I used this project to get the spectrometer up and running.  As it turns out this spectrometer tends to give the same kind of reading for all substances I tested it with.  
+
 # spectro
 
 Supports a Raspberry Pi, controlling a C12666MA spectrometer hosted on an Arduino Uno.
